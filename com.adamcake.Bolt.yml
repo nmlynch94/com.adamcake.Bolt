@@ -68,6 +68,118 @@ cleanup:
   - /cef
   - /usr/lib/sdk/node22
 modules:
+  - name: clang-ccache-symlink
+    buildsystem: simple
+    build-commands:
+      - |
+        set -euxo pipefail
+        [[ "${CCACHE_DIR}" = "/run/ccache" ]] || exit 0
+        ln -svf /usr/bin/ccache /run/ccache/bin/clang
+        ln -svf /usr/bin/ccache /run/ccache/bin/clang++
+  #
+  - name: readelf-symlink
+    only-arches: [aarch64]
+    buildsystem: simple
+    build-commands:
+      # Chromium expects to find readelf with its full toolprefix on arm64
+      - ln -sfv /usr/bin/readelf "${FLATPAK_DEST}/bin/aarch64-linux-gnu-readelf"
+  #
+  # - name: extensions
+  #   buildsystem: simple
+  #   build-commands:
+  #     - mkdir -pv "${FLATPAK_DEST}"/chromium/{extensions,native-messaging-hosts,policies}
+  #     - for dir in native-messaging-hosts policies; do ln -sfv "${FLATPAK_DEST}/chromium/"{"${dir}",extensions}"/${dir}";
+  #       done
+  #     - touch "${FLATPAK_DEST}/chromium/extensions/no-mount-stamp"
+  #
+  - name: dconf
+    buildsystem: meson
+    config-opts:
+      - -Dbash_completion=false
+      - -Dman=false
+      - -Dvapi=false
+    cleanup:
+      - /etc
+      - /include
+      - ca.desrt.dconf.service
+      - dconf.service
+      - dconf-service
+      - '*.pc'
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/dconf/0.40/dconf-0.40.0.tar.xz
+        sha256: cf7f22a4c9200421d8d3325c5c1b8b93a36843650c9f95d6451e20f0bcb24533
+        x-checker-data:
+          type: gnome
+          name: dconf
+          stable-only: true
+      # - patches/dconf/_sources.json
+
+  - name: rust-nightly
+    buildsystem: simple
+    build-commands:
+      - cd rust && ./install.sh --prefix=/app/lib/sdk/rust-nightly --without=rust-docs
+        --without=rust-docs-json-preview --disable-ldconfig --verbose
+      - cd rust-src && ./install.sh --prefix=/app/lib/sdk/rust-nightly --disable-ldconfig
+        --verbose
+    build-options:
+      strip: false
+      no-debuginfo: true
+    cleanup:
+      - '*'
+    sources:
+      - type: archive
+        only-arches:
+          - aarch64
+        dest: rust
+        url: https://static.rust-lang.org/dist/2025-04-21/rust-nightly-aarch64-unknown-linux-gnu.tar.xz
+        sha256: 8853c6793fb22b1d005592f584d986262454de838bddc61cedc14a12442795ec
+        # x-checker-data:
+        #  type: rust
+        #  package: rust
+        #  channel: nightly
+        #  target: aarch64-unknown-linux-gnu
+      - type: archive
+        only-arches:
+          - x86_64
+        dest: rust
+        url: https://static.rust-lang.org/dist/2025-04-21/rust-nightly-x86_64-unknown-linux-gnu.tar.xz
+        sha256: 633ef7829cbfa55f0465f7a9aa616f550ed24f5c06c3eeb174e9be0e5e4a0505
+        # x-checker-data:
+        #  type: rust
+        #  package: rust
+        #  channel: nightly
+        #  target: x86_64-unknown-linux-gnu
+      - type: archive
+        dest: rust-src
+        url: https://static.rust-lang.org/dist/2025-04-21/rust-src-nightly.tar.xz
+        sha256: 76fbba0a950e707c5172deb9e892e3302bab942b8f60b1b9075b4bab01b61407
+        x-checker-data:
+         type: rust
+         package: rust-src
+         channel: nightly
+         target: '*'
+
+  - name: rust-bindgen
+    buildsystem: simple
+    build-options:
+      strip: false
+      no-debuginfo: true
+      prepend-path: /app/lib/sdk/rust-nightly/bin
+      env:
+        CARGO_HOME: /run/build/rust-bindgen/cargo
+    build-commands:
+      - cargo --offline fetch --manifest-path Cargo.toml --verbose
+      - cargo --offline build --release --verbose
+      - install -Dm 755 target/release/bindgen -t /app/lib/sdk/bindgen/bin
+    sources:
+      - type: git
+        url: https://chromium.googlesource.com/external/github.com/rust-lang/rust-bindgen
+        commit: f93d5dfa6d5d7409bea584f3eab38e1fc52b8360
+      - ./generated-sources.bindgen.json
+    cleanup:
+      - '*'
+
   - name: platform-bootstrap
     buildsystem: simple
     build-commands:
@@ -176,16 +288,16 @@ modules:
       - python3 ./cef/tools/make_distrib.py --ninja-build --minimal --no-docs --no-archive --output-dir=/app/cef
     build-options:
       env:
-        GN_DEFINES: 'blink_symbol_level=0 build_with_tflite_lib=false chrome_pgo_phase=0 clang_base_path="/run/build/chromium/llvm19/install" clang_use_chrome_plugins=false disable_fieldtrial_testing_config=true enable_background_mode=false enable_backup_ref_ptr_support=false enable_cdm_host_verification=false enable_cdm_storage_id=false enable_hangout_services_extension=false enable_linux_installer=false enable_mdns=false enable_mse_mpeg2ts_stream_parser=true enable_nacl=false enable_oop_printing=false enable_print_preview=true enable_printing=true enable_reading_list=false enable_remoting=false enable_reporting=false enable_resource_allowlist_generation=false enable_rlz=false enable_service_discovery=false enable_widevine=false exclude_unwind_tables=true fatal_linker_warnings=false ffmpeg_branding=Chrome forbid_non_component_debug_builds=false google_api_key= google_default_client_id= google_default_client_secret= icu_use_data_file=true is_cfi=false is_clang=true is_component_build=false is_debug=false is_official_build=true link_pulseaudio=false optimize_webui=true proprietary_codecs=true rtc_use_pipewire=false safe_browsing_mode=0 symbol_level=0 target_cpu=x64 treat_warnings_as_errors=false use_cfi_icall=false use_cups=false use_custom_libcxx=true use_cxx17=false use_gold=false use_lld=true use_official_google_api_keys=false use_partition_alloc_as_malloc=false use_perfetto_client_library=true use_pulseaudio=false use_qt=false use_sysroot=false use_system_harfbuzz=true use_system_libffi=true use_thin_lto=true use_unofficial_version_number=false use_vaapi=false v8_enable_sandbox=false'
+        GN_DEFINES: 'angle_build_tests=false angle_enable_commit_id=false blink_symbol_level=0 build_angle_perftests=false build_dawn_tests=false build_with_tflite_lib=false chrome_enable_logging_by_default=false chrome_pgo_phase=0 clang_base_path=/base/llvm21/build dawn_enable_null=false devtools_skip_typecheck=false disable_file_support=true disable_histogram_support=true enable_background_mode=false enable_basic_print_dialog=false enable_browser_speech_service=false enable_concurrent_basic_print_dialogs=false enable_media_remoting=false enable_media_remoting_rpc=false enable_nocompile_tests=false enable_pdf_ink2=false enable_pdf_save_to_drive=false enable_perfetto_unittests=false enable_rlz=false enable_rust_png=false enable_screen_ai_browsertests=false enable_service_discovery=false enable_trace_logging=false enable_vr=false enable_widevine=false generate_about_credits=false gtest_enable_absl_printers=false headless_enable_commands=false headless_mode_policy_supported=false headless_use_policy=false headless_use_prefs=false icu_use_data_file=false include_branded_entitlements=false init_stack_vars=false media_use_openh264=false optional_trace_events_enabled=false ozone_platform_headless=false proprietary_codecs=false safe_browsing_mode=0 skia_enable_skshaper_tests=false tint_build_unittests=false use_sysroot=false use_system_libffi=true v8_deprecation_warnings=false v8_enable_test_features=false v8_enable_webassembly=true v8_imminent_deprecation_warnings=false rust_sysroot_absolute=/base/rust/build/host/stage1 rustc_version=\"rustc 1.92.0-nightly (a0f398e89 2025-10-04)\" rust_bindgen_root=/base/rust-bindgen'
     sources:
       - type: git
         url: https://github.com/chromium/chromium.git
-        tag: 126.0.6478.183
-        commit: 2e81dea53f5ecdc1c057e4c70ecd66151987296a
+        tag: 139.0.7258.139
+        commit: 54b87fe5881df381307c2ef806b8e5e87e8a6790
         disable-submodules: true
       - type: git
         url: https://github.com/chromiumembedded/cef.git
-        commit: a5d51ba9db7ee74a523dc247bd09ec91ba4d7446
+        commit: 9bf44520941a6649be08842de867657bd7c60562
         dest: cef
       - type: git
         url: https://gn.googlesource.com/gn
@@ -193,13 +305,13 @@ modules:
         dest: gn
       - type: git
         url: https://github.com/llvm/llvm-project.git
-        tag: llvmorg-19.1.7
-        commit: cd708029e0b2869e80abe31ddb175f7c35361f90
-        dest: llvm19
+        tag: llvmorg-21.1.2
+        commit: b708aea0bc7127adf4ec643660699c8bcdde1273
+        dest: llvm21
       - type: git
         url: https://github.com/ungoogled-software/ungoogled-chromium.git
-        tag: 126.0.6478.182-1
-        commit: c407d7c81e38f80458997d26a164e968baa52e2e
+        tag: 139.0.7258.138-1
+        commit: 803eb8c3f510bc70534910636acfb812b6bb9e0d
         dest: ungoogled-chromium
       - type: archive
         url: https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/rust-toolchain-31e6e8c6c5b6ce62656c922c7384d3376018c980-2-llvmorg-19-init-9433-g76ea5feb.tar.xz
