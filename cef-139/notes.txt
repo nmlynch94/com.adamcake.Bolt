@@ -1,0 +1,23 @@
+Checkout is 139.0.7258.139
+
+llvm 21.1.12, commit b708aea0bc7127adf4ec643660699c8bcdde1273
+gn commit 81b24e01531ecf0eff12ec9359a555ec3944ec4e (don't think it matters, just use the latest)
+Using rust nightly 1.92, commit a0f398e89df9767c93c81cd58d44fdba071258a8
+bindgen tags/v0.72.1, commit d874de8d646d9b8a3e7ba2db2bcd52f2fba8f1f5
+
+GN_DEFINES overrides: angle_build_tests=false angle_enable_commit_id=false blink_symbol_level=0 build_angle_perftests=false build_dawn_tests=false build_with_tflite_lib=false chrome_enable_logging_by_default=false chrome_pgo_phase=0 clang_base_path=/base/llvm21/build dawn_enable_null=false devtools_skip_typecheck=false disable_file_support=true disable_histogram_support=true enable_background_mode=false enable_basic_print_dialog=false enable_browser_speech_service=false enable_concurrent_basic_print_dialogs=false enable_media_remoting=false enable_media_remoting_rpc=false enable_nocompile_tests=false enable_pdf_ink2=false enable_pdf_save_to_drive=false enable_perfetto_unittests=false enable_rlz=false enable_rust_png=false enable_screen_ai_browsertests=false enable_service_discovery=false enable_trace_logging=false enable_vr=false enable_widevine=false generate_about_credits=false gtest_enable_absl_printers=false headless_enable_commands=false headless_mode_policy_supported=false headless_use_policy=false headless_use_prefs=false icu_use_data_file=false include_branded_entitlements=false init_stack_vars=false media_use_openh264=false optional_trace_events_enabled=false ozone_platform_headless=false proprietary_codecs=false safe_browsing_mode=0 skia_enable_skshaper_tests=false tint_build_unittests=false use_sysroot=false use_system_libffi=true v8_deprecation_warnings=false v8_enable_test_features=false v8_enable_webassembly=true v8_imminent_deprecation_warnings=false rust_sysroot_absolute=/base/rust/build/host/stage1 rustc_version=\"rustc 1.92.0-nightly (a0f398e89 2025-10-04)\" rust_bindgen_root=/base/rust-bindgen
+
+-----
+Consider these additional settings for flatpak only, as some of these libraries might already be present in the sandbox, so using system lib would be preferable in that case:
+perfetto_use_system_sqlite, perfetto_use_system_zlib, use_system_freetype, use_system_harfbuzz, use_system_lcms2, use_system_libdrm, use_system_libjpeg, use_system_libopenjpeg2, use_system_libpng, use_system_libsync, use_system_libtiff, use_system_libwayland, use_system_zlib
+-----
+
+Correct order of operations:
+- manually checkout ungoogled-chromium repo somewhere and dit `git checkout tags/139.0.7258.138-1`
+- checkout gn repo into the chromium/src dir
+- build gn (see bolt flatpak - two commands needed)
+- ./cef_create_projects.sh (or directly run gclient_hook, as we do in the current flatpak)
+- apply the patches: the two called "ungoogled-chromium" should be applied to the ungoogled-chromium repo, the rest should be applied to chromium/src
+- also need to remove two widevine assertions from cef, this is partial application of `cef-fix-building-in-flathub.patch` but just do it manually for now
+- apply ungoogled-chromium to the chromium/src directory (this is a three-step process: prune, then patch, then domain substitution, see bolt flatpak for the commands)
+- begin building with ninja: `ninja -k 0 -C out/Release_GN_x64/ -j16 libcef chrome_sandbox`
