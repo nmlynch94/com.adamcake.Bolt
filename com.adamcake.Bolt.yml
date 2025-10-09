@@ -289,15 +289,15 @@ modules:
 
       - /usr/bin/env PATH=./third_party/depot_tools:$PATH CC=$FLATPAK_BUILDER_BUILDDIR/llvm21/install/bin/clang CXX=$FLATPAK_BUILDER_BUILDDIR/llvm21/install/bin/clang++ AR=$FLATPAK_BUILDER_BUILDDIR/llvm21/install/bin/llvm-ar python3 cef/tools/gclient_hook.py
 
-      - ./ungoogled-chromium/utils/prune_binaries.py . ungoogled-chromium/pruning.list
-      - ./ungoogled-chromium/utils/patches.py apply . ungoogled-chromium/patches
-      - ./ungoogled-chromium/utils/domain_substitution.py apply -r ungoogled-chromium/domain_regex.list -f ungoogled-chromium/domain_substitution.list -c domsubcache.tar.gz .
+      # - ./ungoogled-chromium/utils/prune_binaries.py . ungoogled-chromium/pruning.list
+      # - ./ungoogled-chromium/utils/patches.py apply . ungoogled-chromium/patches
+      # - ./ungoogled-chromium/utils/domain_substitution.py apply -r ungoogled-chromium/domain_regex.list -f ungoogled-chromium/domain_substitution.list -c domsubcache.tar.gz .
       # ADD DEPOT_TOOLS PATH
       - /usr/bin/env PATH=./third_party/depot_tools:$PATH CC=$FLATPAK_BUILDER_BUILDDIR/llvm21/install/bin/clang CXX=$FLATPAK_BUILDER_BUILDDIR/llvm21/install/bin/clang++ AR=$FLATPAK_BUILDER_BUILDDIR/llvm21/install/bin/llvm-ar ninja -k 0 -C out/Release_GN -j $FLATPAK_BUILDER_N_JOBS libcef chrome_sandbox || /usr/bin/env CC=$FLATPAK_BUILDER_BUILDDIR/llvm21/install/bin/clang CXX=$FLATPAK_BUILDER_BUILDDIR/llvm21/install/bin/clang++ AR=$FLATPAK_BUILDER_BUILDDIR/llvm21/install/bin/llvm-ar ninja -C out/Release_GN -j $FLATPAK_BUILDER_N_JOBS libcef chrome_sandbox
       - python3 ./cef/tools/make_distrib.py --ninja-build --minimal --no-docs --no-archive --output-dir=/app/cef
     build-options:
       env:
-        GN_DEFINES: 'angle_build_tests=false angle_enable_commit_id=false blink_symbol_level=0 build_angle_perftests=false build_dawn_tests=false build_with_tflite_lib=false chrome_enable_logging_by_default=false chrome_pgo_phase=0 clang_base_path=/base/llvm21/build dawn_enable_null=false devtools_skip_typecheck=false disable_file_support=true disable_histogram_support=true enable_background_mode=false enable_basic_print_dialog=false enable_browser_speech_service=false enable_concurrent_basic_print_dialogs=false enable_media_remoting=false enable_media_remoting_rpc=false enable_nocompile_tests=false enable_pdf_ink2=false enable_pdf_save_to_drive=false enable_perfetto_unittests=false enable_rlz=false enable_rust_png=false enable_screen_ai_browsertests=false enable_service_discovery=false enable_trace_logging=false enable_vr=false enable_widevine=false generate_about_credits=false gtest_enable_absl_printers=false headless_enable_commands=false headless_mode_policy_supported=false headless_use_policy=false headless_use_prefs=false icu_use_data_file=false include_branded_entitlements=false init_stack_vars=false media_use_openh264=false optional_trace_events_enabled=false ozone_platform_headless=false proprietary_codecs=false safe_browsing_mode=0 skia_enable_skshaper_tests=false tint_build_unittests=false use_sysroot=false use_system_libffi=true v8_deprecation_warnings=false v8_enable_test_features=false v8_enable_webassembly=true v8_imminent_deprecation_warnings=false rust_sysroot_absolute=/base/rust/build/host/stage1 rustc_version=\"rustc 1.92.0-nightly (a0f398e89 2025-10-04)\" rust_bindgen_root=/base/rust-bindgen'
+        GN_DEFINES: 'angle_build_tests=false angle_enable_commit_id=false blink_symbol_level=0 build_angle_perftests=false build_dawn_tests=false build_with_tflite_lib=false chrome_enable_logging_by_default=false chrome_pgo_phase=0 clang_base_path=/base/llvm21/build dawn_enable_null=false devtools_skip_typecheck=false disable_file_support=true disable_histogram_support=true enable_background_mode=false enable_basic_print_dialog=false enable_browser_speech_service=false enable_concurrent_basic_print_dialogs=false enable_media_remoting=false enable_media_remoting_rpc=false enable_nocompile_tests=false enable_pdf_ink2=false enable_pdf_save_to_drive=false enable_perfetto_unittests=false enable_rlz=false enable_rust_png=false enable_screen_ai_browsertests=false enable_service_discovery=false enable_trace_logging=false enable_vr=false enable_widevine=false generate_about_credits=false gtest_enable_absl_printers=false headless_enable_commands=false headless_mode_policy_supported=false headless_use_policy=false headless_use_prefs=false icu_use_data_file=false include_branded_entitlements=false init_stack_vars=false media_use_openh264=false optional_trace_events_enabled=false ozone_platform_headless=false proprietary_codecs=false safe_browsing_mode=0 skia_enable_skshaper_tests=false tint_build_unittests=false use_sysroot=false use_system_libffi=true v8_deprecation_warnings=false v8_enable_test_features=false v8_enable_webassembly=true v8_imminent_deprecation_warnings=false rust_sysroot_absolute=/base/rust/build/host/stage1 rustc_version=asdf rust_bindgen_root=/base/rust-bindgen'
     sources:
       - type: archive
         url: https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/clang-llvmorg-21-init-16348-gbd809ffb-17.tar.xz
@@ -309,8 +309,8 @@ modules:
 
       - type: git
         url: https://github.com/chromium/chromium.git
-        tag: 139.0.7258.139
-        commit: 54b87fe5881df381307c2ef806b8e5e87e8a6790
+        tag: 139.0.7258.0
+        commit: ae32b271894227cdc24ee85e5421ac37f0e26592
         disable-submodules: true
       - type: git
         url: https://github.com/chromiumembedded/cef.git
@@ -318,7 +318,7 @@ modules:
         dest: cef
       - type: git
         url: https://gn.googlesource.com/gn
-        commit: ed1abc107815210dc66ec439542bee2f6cbabc00
+        commit: 97b68a0bb62b7528bc3491c7949d6804223c2b82
         dest: gn
       - type: git
         url: https://github.com/llvm/llvm-project.git
@@ -361,6 +361,10 @@ modules:
       #   path: patch/perfetto-fix-clang-template-warning.patch
       - type: patch
         path: patch/gn-fix-building-in-flathub.patch
+      - type: patch
+        path: patch/cef-fix-build-in-flathub.patch
+        options:
+          - --directory=cef
       # - type: patch
       #   path: patch/cef-fix-building-in-flathub.patch
       #   options:
@@ -403,22 +407,22 @@ modules:
           - org.chromium.Chromium/patches/chromium/flatpak-Add-initial-sandbox-support.patch
           - org.chromium.Chromium/patches/chromium/flatpak-Expose-Widevine-into-the-sandbox.patch
           - org.chromium.Chromium/patches/chromium/flatpak-Adjust-paths-for-the-sandbox.patch
-          - org.chromium.Chromium/patches/chromium/Import-chromium-71.0.3578.98-widevine-r3.patch-arm64-suppo.patch
-          - org.chromium.Chromium/patches/chromium/x11-Set-_NET_WM_BYPASS_COMPOSITOR-for-fullscreen.patch
-          - org.chromium.Chromium/patches/chromium/Enable-accelerated-mjpeg-decode-on-Linux.patch
-          - org.chromium.Chromium/patches/chromium/ffmpeg-Don-t-lie-about-AAC-and-H264-decoders-when-not-avai.patch
-          - org.chromium.Chromium/patches/chromium/Remove-the-ability-to-create-desktop-shortcuts.patch
-          - org.chromium.Chromium/patches/chromium/Use-CHROME_WRAPPER-as-the-executable-on-restart.patch
-          - org.chromium.Chromium/patches/chromium/Enable-new-dtags-on-non-component-builds.patch
-          - org.chromium.Chromium/patches/chromium/Add-support-for-respecting-system-proxy-settings-when-runn.patch
-          - org.chromium.Chromium/patches/chromium/Clang-build-script-Disable-hwasan.patch
-          - org.chromium.Chromium/patches/chromium/clang-build-script-Support-disabling-the-bundled-libxml2.patch
-          - org.chromium.Chromium/patches/chromium/Clang-build-script-Don-t-build-against-the-sysroot.patch
-          - org.chromium.Chromium/patches/chromium/Clang-build-script-add-support-for-building-a-subset-of-ta.patch
-          - org.chromium.Chromium/patches/chromium/media-ffmpeg-Don-t-fail-cross-compilation-on-unsupported-a.patch
-          - org.chromium.Chromium/patches/chromium/media-ffmpeg-Skip-formatting-generated-GN-files.patch
-          - org.chromium.Chromium/patches/chromium/Only-check-the-Node-major-version-number.patch
-          - org.chromium.Chromium/patches/chromium/build-Only-check-rustc_revision-when-using-Chromium-s-Rust.patch
+          # - org.chromium.Chromium/patches/chromium/Import-chromium-71.0.3578.98-widevine-r3.patch-arm64-suppo.patch
+          # - org.chromium.Chromium/patches/chromium/x11-Set-_NET_WM_BYPASS_COMPOSITOR-for-fullscreen.patch
+          # - org.chromium.Chromium/patches/chromium/Enable-accelerated-mjpeg-decode-on-Linux.patch
+          # - org.chromium.Chromium/patches/chromium/ffmpeg-Don-t-lie-about-AAC-and-H264-decoders-when-not-avai.patch
+          # - org.chromium.Chromium/patches/chromium/Remove-the-ability-to-create-desktop-shortcuts.patch
+          # - org.chromium.Chromium/patches/chromium/Use-CHROME_WRAPPER-as-the-executable-on-restart.patch
+          # - org.chromium.Chromium/patches/chromium/Enable-new-dtags-on-non-component-builds.patch
+          # - org.chromium.Chromium/patches/chromium/Add-support-for-respecting-system-proxy-settings-when-runn.patch
+          # - org.chromium.Chromium/patches/chromium/Clang-build-script-Disable-hwasan.patch
+          # - org.chromium.Chromium/patches/chromium/clang-build-script-Support-disabling-the-bundled-libxml2.patch
+          # - org.chromium.Chromium/patches/chromium/Clang-build-script-Don-t-build-against-the-sysroot.patch
+          # - org.chromium.Chromium/patches/chromium/Clang-build-script-add-support-for-building-a-subset-of-ta.patch
+          # - org.chromium.Chromium/patches/chromium/media-ffmpeg-Don-t-fail-cross-compilation-on-unsupported-a.patch
+          # - org.chromium.Chromium/patches/chromium/media-ffmpeg-Skip-formatting-generated-GN-files.patch
+          # - org.chromium.Chromium/patches/chromium/Only-check-the-Node-major-version-number.patch
+          # - org.chromium.Chromium/patches/chromium/build-Only-check-rustc_revision-when-using-Chromium-s-Rust.patch
           # - org.chromium.Chromium/patches/chromium/flatpak-Add-initial-sandbox-support.patch
           # - org.chromium.Chromium/patches/chromium/flatpak-Adjust-paths-for-the-sandbox.patch
           # - org.chromium.Chromium/patches/chromium/x11-Set-_NET_WM_BYPASS_COMPOSITOR-for-fullscreen.patch
