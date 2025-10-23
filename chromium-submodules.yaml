@@ -693,11 +693,11 @@
   commit: d5cfe19da8b974ca35764dd1c73b91d57cd3c4ce
   dest: third_party/node-api-headers
   disable-submodules: true
-# - type: git
-#   url: https://chromium.googlesource.com/external/github.com/open-source-parsers/jsoncpp
-#   commit: 42e892d96e47b1f6e29844cc705e148ec4856448
-#   dest: third_party/jsoncpp/source
-#   disable-submodules: true
+- type: git
+  url: https://chromium.googlesource.com/external/github.com/open-source-parsers/jsoncpp
+  commit: 42e892d96e47b1f6e29844cc705e148ec4856448
+  dest: third_party/jsoncpp/source
+  disable-submodules: true
 - type: git
   url: https://chromium.googlesource.com/external/github.com/protocolbuffers/protobuf-javascript
   commit: 28bf5df73ef2f345a936d9cc95d64ba8ed426a53

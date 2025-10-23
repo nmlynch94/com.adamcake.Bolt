@@ -1,0 +1,32 @@
+From 1564aebe743c691cb5177555bb602b010cd2c10f Mon Sep 17 00:00:00 2001
+From: nmlynch94 <nmlynch94@gmail.com>
+Date: Fri, 10 Oct 2025 17:57:49 -0400
+Subject: [PATCH] remove failed patch: chrome_browser_policy only
+
+---
+ patch/patch.cfg | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/patch/patch.cfg b/patch/patch.cfg
+index 5c9df1bec..90ab64268 100644
+--- a/patch/patch.cfg
++++ b/patch/patch.cfg
+@@ -317,11 +317,11 @@ patches = [
+     # https://github.com/chromiumembedded/cef/issues/3352
+     'name': 'chrome_browser_permission_prompt',
+   },
+-  {
+-    # Support configuration of Chrome policy management.
+-    # https://github.com/chromiumembedded/cef/issues/3581
+-    'name': 'chrome_browser_policy',
+-  },
++  # {
++  #   # Support configuration of Chrome policy management.
++  #   # https://github.com/chromiumembedded/cef/issues/3581
++  #   'name': 'chrome_browser_policy',
++  # },
+   {
+     # Support OOP printing with Chrome runtime Alloy style OSR.
+     # https://github.com/chromiumembedded/cef/issues/3681
+-- 
+2.51.0

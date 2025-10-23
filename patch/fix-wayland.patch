@@ -1,0 +1,25 @@
+From 63b6f6afe3e4ef9325dcf5f6b7e32ef86162dba0 Mon Sep 17 00:00:00 2001
+From: nmlynch94 <nmlynch94@gmail.com>
+Date: Thu, 9 Oct 2025 01:06:31 -0400
+Subject: [PATCH] fix wayland
+
+---
+ ui/ozone/platform/wayland/wayland.gni | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ui/ozone/platform/wayland/wayland.gni b/ui/ozone/platform/wayland/wayland.gni
+index 01e5517f7353e..7144a841ca0dc 100644
+--- a/ui/ozone/platform/wayland/wayland.gni
++++ b/ui/ozone/platform/wayland/wayland.gni
+@@ -18,7 +18,7 @@ declare_args() {
+   use_bundled_weston = false
+ 
+   # Checks if mutter must be compiled
+-  use_bundled_mutter = checkout_mutter
++  use_bundled_mutter = false
+ }
+ 
+ assert(
+-- 
+2.51.0
+

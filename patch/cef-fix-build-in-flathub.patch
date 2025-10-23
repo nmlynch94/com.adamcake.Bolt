@@ -1,14 +1,14 @@
-From 436dc4c7d8de5678b71175d6302934c1f6770e0a Mon Sep 17 00:00:00 2001
+From b59ebf1befe972517bb8586f55b7f983054de8ba Mon Sep 17 00:00:00 2001
 From: nmlynch94 <nmlynch94@gmail.com>
-Date: Wed, 8 Oct 2025 22:59:56 -0400
+Date: Thu, 9 Oct 2025 00:57:56 -0400
 Subject: [PATCH] cef fix build in flathub
 
 ---
  BUILD.gn              |  3 --
  tools/gclient_hook.py |  8 +++--
- tools/gn_args.py      | 73 +++++++------------------------------------
- tools/make_distrib.py | 31 ++----------------
- 4 files changed, 19 insertions(+), 96 deletions(-)
+ tools/gn_args.py      | 69 ++++++-------------------------------------
+ tools/make_distrib.py | 31 ++-----------------
+ 4 files changed, 17 insertions(+), 94 deletions(-)
 
 diff --git a/BUILD.gn b/BUILD.gn
 index cc4af4032..830569ad6 100644
@@ -62,7 +62,7 @@ index 234d3a719..d74ad5ab3 100644
      cmd.extend(os.environ['GN_ARGUMENTS'].split(' '))
    RunAction(src_dir, cmd)
 diff --git a/tools/gn_args.py b/tools/gn_args.py
-index 023a90153..8f31a4a12 100644
+index 023a90153..2427de7a3 100644
 --- a/tools/gn_args.py
 +++ b/tools/gn_args.py
 @@ -278,8 +278,6 @@ def GetRequiredArgs():
@@ -88,14 +88,14 @@ index 023a90153..8f31a4a12 100644
 -  args = GetMergedArgs(build_args)
 -
 -  create_debug = True
- 
+-
 -  # Don't create debug directories for asan builds.
 -  if GetArgValue(args, 'is_asan'):
 -    create_debug = False
 -    msg('Not generating Debug configuration due to is_asan=true')
 -
 -  supported_cpus = []
--
+ 
 -  if platform == 'linux':
 -    use_sysroot = GetArgValue(args, 'use_sysroot')
 -    if use_sysroot:
@@ -115,7 +115,14 @@ index 023a90153..8f31a4a12 100644
 -        supported_cpus.append('x86')
 -    if machine == 'arm64' or os.environ.get('CEF_ENABLE_ARM64', '') == '1':
 -      supported_cpus.append('arm64')
--  else:
++  machine = python_platform.machine()
++  if machine == 'x86_64':
++    cpu = 'x64'
++  elif machine == 'arm':
++    cpu = 'arm'
++  elif machine == 'aarch64':
++    cpu = 'arm64'
+   else:
 -    raise Exception('Unsupported platform')
 -
 -  if len(supported_cpus) == 0:
@@ -137,18 +144,9 @@ index 023a90153..8f31a4a12 100644
 -    if not bool(result):
 -      raise Exception('No supported configurations in GN_OUT_CONFIGS ("%s")' %
 -                      ','.join(out_configs))
--
--  return result
-+  machine = python_platform.machine()
-+  if machine == 'x86_64':
-+    cpu = 'x64'
-+  elif machine == 'arm':
-+    cpu = 'arm'
-+  elif machine == 'aarch64':
-+    cpu = 'arm64'
-+  else:
 +     raise Exception('No supported architectures')
-+
+ 
+-  return result
 +  return {'Release_GN': GetConfigArgs(GetMergedArgs(build_args), False, cpu)}
  
  
