@@ -226,7 +226,7 @@ modules:
 
       # CEFs patch application is too strict, so we apply this manually first
       # to avoid conflict with flatpak sandbox patches
-      - patch -p0 < cef/patch/patches/chrome_browser_policy.patch 
+      # - patch -p0 < cef/patch/patches/chrome_browser_policy.patch 
 
       - export PATH=/app/lib/sdk/llvm21/bin:$PATH
       - ./build/util/lastchange.py -m SKIA_COMMIT_HASH -s third_party/skia --header skia/ext/skia_commit_hash.h
@@ -249,7 +249,23 @@ modules:
       - export GN_DEFINES="$GN_DEFINES clang_base_path=$(llvm-config --prefix)"
       - export GN_DEFINES="$GN_DEFINES clang_version=$(llvm-config --version | awk -F. '{print $1}')"
 
+      - patch -p1 < io.github.ungoogled_software.ungoogled_chromium/patches/chromium/flatpak-Add-initial-sandbox-support.patch
+      - patch -p1 < io.github.ungoogled_software.ungoogled_chromium/patches/chromium/flatpak-Adjust-paths-for-the-sandbox.patch
+
       - /usr/bin/env PATH=./third_party/depot_tools:$PATH python3 cef/tools/gclient_hook.py
+
+      # - type: patch
+      #   path: cef-139/angle-remove-undefined-const.patch
+      #   options:
+      #     - --directory=third_party/angle
+      # - type: patch
+      #   path: cef-139/chromium-remove-test-fonts.patch
+      # - type: patch
+      #   path: cef-139/chromium-use-system-node.patch
+
+      - patch -p1 --directory=third_party/angle < angle-remove-undefined-const.patch
+      - patch -p1 < chromium-remove-test-fonts.patch
+      - patch -p1 < chromium-use-system-node.patch
 
       - ./ungoogled-chromium/utils/prune_binaries.py . ungoogled-chromium/pruning.list
       - ./ungoogled-chromium/utils/patches.py apply . ungoogled-chromium/patches
@@ -298,17 +314,19 @@ modules:
 
       - type: git
         url: https://github.com/chromium/chromium.git
-        tag: 139.0.7258.0
-        commit: ae32b271894227cdc24ee85e5421ac37f0e26592
+        tag: 139.0.7258.139
+        commit: 54b87fe5881df381307c2ef806b8e5e87e8a6790
         disable-submodules: true
       - type: git
         url: https://github.com/chromiumembedded/cef.git
-        commit: 9bf44520941a6649be08842de867657bd7c60562
+        commit: 10ed9b3a9dd9f401eb2550058c6e7ebe890eda61
         dest: cef
       - type: git
         url: https://gn.googlesource.com/gn
-        commit: 97b68a0bb62b7528bc3491c7949d6804223c2b82
+        commit: 81b24e01531ecf0eff12ec9359a555ec3944ec4e
         dest: gn
+      - third-party-node-modules.yaml
+      - chromium-submodules.yaml
       - type: git
         url: https://github.com/ungoogled-software/ungoogled-chromium.git
         tag: 139.0.7258.138-1
@@ -325,16 +343,38 @@ modules:
       #   strip-components: 0
       #   only-arches:
       #     - "x86_64"
+        #
+        #
+      # - type: patch
+      #   path: cef-139/angle-remove-undefined-const.patch
+      #   options:
+      #     - --directory=third_party/angle
+      # - type: patch
+      #   path: cef-139/chromium-remove-test-fonts.patch
+      - type: patch
+        path: cef-139/chromium-use-system-node.patch
+      #
+      #:
+      - type: dir
+        path: cef-139
+      - type: patch
+        path: cef-139/ungoogled-chromium-adjust-for-cef.patch
+        otptions:
+          - --directory=ungoogled-chromium
+      - type: patch
+        path: cef-139/ungoogled-chromium-ignore-nonexistent-binaries.patch
+        options:
+          - --directory=ungoogled-chromium
       - type: archive
         url: https://registry.npmjs.org/mocha/-/mocha-10.0.0.tgz
         sha256: 91c4b9e3d052d73b7cdf297d296e698e8db1137724dd4391cdc5b93ad543283f
         dest: third_party/node/node_modules/mocha
-      - third-party-node-modules.yaml
-      - chromium-submodules.yaml
       - type: patch
-        path: patch/chromium-remove-test-fonts.patch
-      - type: patch
-        path: patch/chromium-use-system-node.patch
+        path: patch/gn-fix-building-in-flathub.patch
+      # - type: patch
+      #   path: patch/chromium-remove-test-fonts.patch
+      # - type: patch
+      #   path: patch/chromium-use-system-node.patch
       # - type: patch
       #   path: patch/chromium-dont-update-rust.patch
       # - type: patch
@@ -343,27 +383,27 @@ modules:
       #   path: patch/blink-fix-gperf.patch
       # - type: patch
       #   path: patch/perfetto-fix-clang-template-warning.patch
-      - type: patch
-        path: patch/gn-fix-building-in-flathub.patch
-      - type: patch
-        path: patch/chromium-138-rust-1.86-mismatched_lifetime_syntaxes.patch
+      # - type: patch
+      #   path: patch/chromium-138-rust-1.86-mismatched_lifetime_syntaxes.patch
+        #
       - type: patch
         path: patch/cef-fix-build-in-flathub.patch
         options:
           - --directory=cef
-      - type: patch
-        path: patch/cef-remove-failed-patches.patch
-        options:
-          - --directory=cef
-          - -p0
+        #
+      # - type: patch
+      #   path: patch/cef-remove-failed-patches.patch
+      #   options:
+      #     - --directory=cef
+      #     - -p0
       # - type: patch
       #   path: patch/cef-fix-building-in-flathub.patch
       #   options:
       #     - --directory=cef
-      - type: patch
-        path: patch/libcef-fix-building-without-safebrowsing.patch
-        options:
-          - --directory=cef
+      # - type: patch
+      #   path: patch/libcef-fix-building-without-safebrowsing.patch
+      #   options:
+      #     - --directory=cef
       # - type: patch
       #   path: patch/cef-fix-arm64-requires-sysroots.patch
       #   options:
@@ -373,34 +413,36 @@ modules:
       #   options:
       #     - --directory=cef
       #
-      - type: patch
-        path: patch/angle-remove-undefined-const.patch
-        options:
-          - --directory=third_party/angle
-      - type: patch
-        path: patch/cef-no-fortify.patch
-        options:
-          - --directory=cef
-      - type: patch
-        path: patch/ungoogled-chromium-ignore-nonexistent-binaries.patch
-        options:
-          - --directory=ungoogled-chromium
-      - type: patch
-        path: patch/ungoogled-chromium-adjust-for-cef.patch
-        options:
-          - --directory=ungoogled-chromium
+      # - type: patch
+      #   path: patch/angle-remove-undefined-const.patch
+      #   options:
+      #     - --directory=third_party/angle
+      # - type: patch
+      #   path: patch/cef-no-fortify.patch
+      #   options:
+      #     - --directory=cef
+      # - type: patch
+      #   path: patch/ungoogled-chromium-ignore-nonexistent-binaries.patch
+      #   options:
+      #     - --directory=ungoogled-chromium
+      # - type: patch
+      #   path: patch/ungoogled-chromium-adjust-for-cef.patch
+      #   options:
+      #     - --directory=ungoogled-chromium
       - type: patch
         paths:
           - patch/fix-wayland-and-disable-e2etests.patch
+      - type: dir
+        path: io.github.ungoogled_software.ungoogled_chromium
       - type: patch
         paths:
-          - io.github.ungoogled_software.ungoogled_chromium/patches/chromium/Import-chromium-71.0.3578.98-widevine-r3.patch-arm64-suppo.patch
+          # - io.github.ungoogled_software.ungoogled_chromium/patches/chromium/Import-chromium-71.0.3578.98-widevine-r3.patch-arm64-suppo.patch
           - io.github.ungoogled_software.ungoogled_chromium/patches/chromium/Only-check-the-Node-major-version-number.patch
-          - io.github.ungoogled_software.ungoogled_chromium/patches/chromium/Remove-the-ability-to-create-desktop-shortcuts.patch
-          - io.github.ungoogled_software.ungoogled_chromium/patches/chromium/Use-CHROME_WRAPPER-as-the-executable-on-restart.patch
-          - io.github.ungoogled_software.ungoogled_chromium/patches/chromium/flatpak-Add-initial-sandbox-support.patch
-          - io.github.ungoogled_software.ungoogled_chromium/patches/chromium/flatpak-Adjust-paths-for-the-sandbox.patch
-          - io.github.ungoogled_software.ungoogled_chromium/patches/chromium/flatpak-Expose-Widevine-into-the-sandbox.patch
+          # - io.github.ungoogled_software.ungoogled_chromium/patches/chromium/Remove-the-ability-to-create-desktop-shortcuts.patch
+          # - io.github.ungoogled_software.ungoogled_chromium/patches/chromium/Use-CHROME_WRAPPER-as-the-executable-on-restart.patch
+          # - io.github.ungoogled_software.ungoogled_chromium/patches/chromium/flatpak-Add-initial-sandbox-support.patch
+          # - io.github.ungoogled_software.ungoogled_chromium/patches/chromium/flatpak-Adjust-paths-for-the-sandbox.patch
+          # - io.github.ungoogled_software.ungoogled_chromium/patches/chromium/flatpak-Expose-Widevine-into-the-sandbox.patch
       # - type: patch
       #   paths:
           # - org.chromium.Chromium/patches/chromium/flatpak-Add-initial-sandbox-support.patch
