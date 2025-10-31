@@ -1,8 +1,8 @@
-app-id: com.adamcake.Bolt
+id: com.adamcake.ungoogled-cef.BaseApp
+branch: &runtime-version "24.08"
 runtime: org.freedesktop.Platform
-runtime-version: &runtime-version "24.08"
+runtime-version: *runtime-version
 sdk: org.freedesktop.Sdk
-command: bolt
 build_options:
   cflags: -O3
   cflags-override: true
@@ -12,19 +12,6 @@ build_options:
   cxxflags-override: true
   append-path: /app/lib/sdk/llvm21/bin:/usr/lib/sdk/rust-stable/bin
   append-ld-library-path: /usr/lib/sdk/rust-stable/lib
-finish-args:
-  - --device=dri
-  - --share=ipc
-  - --socket=x11
-  - --socket=wayland
-  - --socket=pulseaudio
-  - --share=network
-  - --allow=multiarch
-  - --env=JAVA_HOME=/app/jre
-  - --talk-name=org.freedesktop.Notifications
-  - --filesystem=xdg-data/icons:create
-  - --filesystem=xdg-run/app/com.discordapp.Discord
-  - --filesystem=xdg-run/discord-ipc-0
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.openjdk21
 
@@ -50,50 +37,7 @@ modules:
         url: https://github.com/krb5/krb5.git
         tag: krb5-1.21.2-final
         commit: 835f6e3d819beb7ee1046f01afb284b54ad54c5f
-  - name: openjdk
-    buildsystem: simple
-    build-commands:
-      - /usr/lib/sdk/openjdk21/install.sh
   - shared-modules/gtk2/gtk2.json
-  - name: openssl
-    buildsystem: simple
-    build-commands:
-      - ./config --prefix=/app --openssldir=/app/ssl shared zlib
-      - make -j $FLATPAK_BUILDER_N_JOBS
-      - make install_sw
-    sources:
-      - type: git
-        url: https://github.com/openssl/openssl.git
-        tag: OpenSSL_1_1_1w
-        commit: e04bd3433fd84e1861bf258ea37928d9845e6a86
-  - name: libnotify
-    buildsystem: meson
-    config-opts:
-      - -Dman=false
-      - -Dgtk_doc=false
-      - -Ddocbook_docs=disabled
-    cleanup:
-      - /include
-      - /lib/pkgconfig
-      - /lib/debug
-      - /lib/girepository-1.0
-      - /share/gtk-doc
-      - /share/gir-1.0
-    sources:
-      - type: git
-        url: https://github.com/GNOME/libnotify.git
-        tag: 0.8.3
-        commit: 6083790f9e0f1827147ecd8799c4dced0e86a877
-  - name: luajit
-    buildsystem: simple
-    build-commands:
-      - make -j $FLATPAK_BUILDER_N_JOBS
-      - make PREFIX=/app install
-    sources:
-      - type: git
-        url: https://github.com/LuaJIT/LuaJIT.git
-        tag: v2.1.ROLLING
-        commit: 2090842410e0ba6f81fad310a77bf5432488249a
   - name: llvm21
     buildsystem: simple
     build-commands:
@@ -200,36 +144,3 @@ modules:
         path: patch/ungoogled-chromium-ignore-nonexistent-binaries.patch
       - type: file
         path: patch/ungoogled-chromium-remove-extra-locales.patch
-  - name: wine-staging
-    buildsystem: simple
-    build-commands:
-      - mkdir -p wine-staging
-      - tar xf wine-staging.tar.xz -C wine-staging --strip-components=1
-      - cp -r wine-staging/bin/* /app/bin/
-      - cp -r wine-staging/lib/* /app/lib/
-      - cp -r wine-staging/share/* /app/share/
-    sources:
-      - type: file
-        url: https://github.com/Kron4ek/Wine-Builds/releases/download/10.15/wine-10.15-staging-amd64.tar.xz
-        dest-filename: wine-staging.tar.xz
-        sha256: 3c6d14a58cd67ef7250967eadb84be7d0ef5f789ebacaed424bc5f3da51293b4
-        x-checker-data:
-          type: json
-          url: https://api.github.com/repos/Kron4ek/Wine-Builds/releases/latest
-          version-query: .tag_name
-          url-query: .assets[] | select(.name=="wine-" + $version + "-staging-amd64.tar.xz")
-            | .browser_download_url
-  - name: bolt
-    buildsystem: cmake-ninja
-    config-opts:
-      - -DCMAKE_BUILD_TYPE=Release
-      - -DCEF_ROOT=/app/cef/dist
-      - -DBOLT_META_NAME=com.adamcake.Bolt
-      - -DBOLT_BINDIR=bin
-      - -DBOLT_LIBDIR=lib
-      - -DBOLT_SHAREDIR=share
-    sources:
-      - type: git
-        url: https://github.com/Adamcake/Bolt.git
-        tag: 0.20.1
-        commit: b7565d4478eb6b842c8161b7dae244cb96f508e0
